@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your Selections</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      background: linear-gradient(90deg, #b172c9, #7a6ff0);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Your Selections</h1>
+    <p><strong>Gender:</strong> {{ gender }}</p>
+    <p><strong>Perfumes:</strong></p>
+    <ul>
+      {% for perfume in perfumes %}
+      <li>{{ perfume }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</body>
+</html>

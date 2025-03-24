@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Perfume Selector</title>
+  <style>
+    :root {
+      --primary-bg: #121212;
+      --secondary-bg: #1e1e1e;
+      --accent: #9370DB;
+      --text: #e0e0e0;
+      --secondary-text: #a0a0a0;
+      --border: #3a3a3a;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: var(--primary-bg);
+      color: var(--text);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    
+    /* Animated background */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      overflow: hidden;
+    }
+    
+    .bg-animation span {
+      position: absolute;
+      background: var(--accent);
+      opacity: 0.1;
+      border-radius: 50%;
+      animation: move 10s linear infinite;
+    }
+    
+    @keyframes move {
+      0% {
+        transform: translateY(0) translateX(0) rotate(0deg);
+        opacity: 0.1;
+      }
+      50% {
+        opacity: 0.2;
+      }
+      100% {
+        transform: translateY(-100vh) translateX(20vw) rotate(360deg);
+        opacity: 0;
+      }
+    }
+    
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #b172c9, #7a6ff0);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    p.subtitle {
+      color: var(--secondary-text);
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+      background-color: var(--secondary-bg);
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .form-group:hover {
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .gender-select {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a0a0a0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      outline: none;
+    }
+    
+    .gender-select:focus {
+      border-color: var(--accent);
+    }
+    
+    .search-container {
+      position: relative;
+      margin-bottom: 8px;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 12px 12px 12px 36px;
+      background-color: var(--primary-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+    }
+    
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--secondary-text);
+    }
+    
+    .dropdown-list {
+      max-height: 200px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      background-color: var(--primary-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-top: 4px;
+      display: none;
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent) var(--primary-bg);
+      scroll-behavior: smooth;
+      position: relative;
+      z-index: 10;
+      touch-action: pan-y;
+    }
+    
+    .dropdown-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .dropdown-list::-webkit-scrollbar-track {
+      background: var(--primary-bg);
+    }
+    
+    .dropdown-list::-webkit-scrollbar-thumb {
+      background-color: var(--accent);
+      border-radius: 6px;
+    }
+    
+    .dropdown-item {
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .dropdown-item:hover {
+      background-color: rgba(147, 112, 219, 0.2);
+    }
+    
+    .selected-items {
+      margin-top: 16px;
+    }
+    
+    .selected-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: rgba(147, 112, 219, 0.15);
+      padding: 10px 12px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1.2rem;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    
+    .remove-btn:hover {
+      opacity: 1;
+    }
+    
+    .empty-state {
+      text-align: center;
+      color: var(--secondary-text);
+      padding: 16px;
+      font-size: 0.9rem;
+    }
+    
+    .save-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #9370DB, #6A5ACD);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 24px;
+    }
+    
+    .save-btn:hover {
+      background: linear-gradient(135deg, #8a60d9, #5d4ec7);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(106, 90, 205, 0.4);
+    }
+    
+    .save-btn:active {
+      transform: translateY(0);
+    }
+    
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid rgba(147, 112, 219, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--accent);
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--secondary-bg);
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      min-width: 280px;
+      max-width: 90%;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 1000;
+    }
+    
+    .notification.show {
+      opacity: 1;
+    }
+    
+    .notification-icon {
+      margin-right: 12px;
+      color: var(--accent);
+    }
+    
+    @media (max-width: 480px) {
+      .container {
+        padding: 16px;
+      }
+      
+      h1 {
+        font-size: 1.6rem;
+      }
+      
+      .form-group {
+        padding: 12px;
+      }
+      
+      .save-btn {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-animation" id="bgAnimation"></div>
+  <!-- Wrap the content in a form so that on successful save the data is submitted -->
+  <form id="selection-form" method="POST" action="/recommendations">
+    <div class="container">
+      <header>
+        <h1>Cold Start: Perfume Recommender</h1>
+        <p class="subtitle">To access personalized recommendations, please select at least three perfumes you like and choose your gender.</p>
+      </header>
+      
+      <div class="form-group">
+        <label for="gender">Select Gender</label>
+        <select id="gender" name="gender" class="gender-select">
+          <option value="">Please select</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="perfume-search">Search Perfumes (use full names for brands)</label>
+        <div class="search-container">
+          <span class="search-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input type="text" id="perfume-search" class="search-input" placeholder="Start typing to search...">
+        </div>
+        
+        <div id="perfume-dropdown" class="dropdown-list">
+          <div class="loading">
+            <div class="spinner"></div>
+          </div>
+        </div>
+        
+        <div id="selected-perfumes" class="selected-items">
+          <div class="empty-state">No perfumes selected yet</div>
+        </div>
+      </div>
+      
+      <!-- Hidden input to store selected perfumes -->
+      <input type="hidden" name="perfumes" id="selected-perfumes-hidden">
+      
+      <button type="button" id="save-button" class="save-btn">Next</button>
+    </div>
+  </form>
+  
+  <div id="notification" class="notification">
+    <span class="notification-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    </span>
+    <span id="notification-message">Your selections have been saved!</span>
+  </div>
+  
+  <script>
+    // Dynamic background animation
+    function createBackgroundAnimation() {
+      const bgAnimationEl = document.getElementById('bgAnimation');
+      const numberOfElements = 15;
+      for (let i = 0; i < numberOfElements; i++) {
+        const span = document.createElement('span');
+        span.style.width = `${Math.random() * 80 + 20}px`;
+        span.style.height = span.style.width;
+        span.style.left = `${Math.random() * 100}vw`;
+        span.style.top = `${Math.random() * 100}vh`;
+        span.style.animationDuration = `${Math.random() * 10 + 10}s`;
+        span.style.animationDelay = `${Math.random() * 5}s`;
+        bgAnimationEl.appendChild(span);
+      }
+    }
+    
+    // Google Sheets Integration
+    class GoogleSheetsManager {
+      constructor() {
+        // Use your provided deployment and sheet IDs
+        const deploymentId = "AKfycbxFmCDSn13h5inyYtYoraghf75aE_MCjL9oBRjDTU8svp9UKSj8xi-qGUgbgmfLAjS0";
+        this.sourceSheetId = "1mIHlu-wyuPq6js72jY90JHfT0YYCFN9AEraFH_ylDmE";
+        this.destinationSheetId = "1MYz2kIZB4qPVdT-7g1wbigpVPAcSn94nqCYcQekYW2E";
+        this.fetchUrl = `https://script.google.com/macros/s/${deploymentId}/exec?action=fetch&sheetId=${this.sourceSheetId}`;
+        this.saveUrl = `https://script.google.com/macros/s/${deploymentId}/exec?action=save&sheetId=${this.destinationSheetId}`;
+      }
+      
+      async fetchPerfumes() {
+        try {
+          const response = await fetch(this.fetchUrl);
+          if (!response.ok) throw new Error(`Failed to fetch data: ${response.statusText}`);
+          const data = await response.json();
+          if (data.error) throw new Error(data.error);
+          return data.perfumes || [];
+        } catch (error) {
+          console.error("Error fetching perfumes:", error);
+          throw new Error("Failed to load perfumes. Please try again.");
+        }
+      }
+      
+      async savePerfumeSelection(perfumes, gender) {
+        try {
+          if (!gender) throw new Error("Please select a gender");
+          if (perfumes.length < 1) throw new Error("Please select at least one perfume");
+          
+          const data = {
+            perfumes: perfumes.join(", "),
+            gender: gender,
+            timestamp: new Date().toISOString()
+          };
+          const params = new URLSearchParams();
+          params.append('data', JSON.stringify(data));
+          const saveUrlWithParams = `${this.saveUrl}&${params.toString()}`;
+          const response = await fetch(saveUrlWithParams, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            }
+          });
+          if (!response.ok) throw new Error(`Failed to save data: ${response.statusText}`);
+          const result = await response.json();
+          if (result.error) throw new Error(result.error);
+          return { success: true, message: result.message || "Your selections have been saved!" };
+        } catch (error) {
+          console.error("Error saving selection:", error);
+          throw error;
+        }
+      }
+    }
+    
+    // Virtualized list for improved performance with large datasets
+    class VirtualizedPerfumeList {
+      constructor(containerElement, itemHeight = 40) {
+        this.container = containerElement;
+        this.itemHeight = itemHeight;
+        this.allItems = [];
+        this.visibleItems = [];
+        this.filterText = '';
+        this.selectedItems = new Set();
+        
+        this.container.style.position = 'relative';
+        this.container.addEventListener('scroll', this.handleScroll.bind(this));
+        this.container.addEventListener('touchstart', (e) => {
+          if (!['INPUT', 'BUTTON', 'SELECT', 'A'].includes(e.target.tagName)) e.stopPropagation();
+        }, { passive: true });
+        this.container.addEventListener('touchmove', (e) => {}, { passive: true });
+      }
+      
+      setItems(items) {
+        this.allItems = items;
+        this.updateVisibleItems();
+      }
+      
+      filterItems(text) {
+        this.filterText = text.toLowerCase();
+        this.updateVisibleItems();
+      }
+      
+      selectItem(item) {
+        this.selectedItems.add(item);
+        this.updateVisibleItems();
+        return Array.from(this.selectedItems);
+      }
+      
+      unselectItem(item) {
+        this.selectedItems.delete(item);
+        this.updateVisibleItems();
+        return Array.from(this.selectedItems);
+      }
+      
+      updateVisibleItems() {
+        const filteredItems = this.allItems.filter(item => {
+          return !this.selectedItems.has(item) && (this.filterText === '' || item.toLowerCase().includes(this.filterText));
+        });
+        
+        const totalHeight = filteredItems.length * this.itemHeight;
+        this.container.style.height = totalHeight < 400 ? `${totalHeight}px` : `400px`;
+        
+        const scrollTop = this.container.scrollTop;
+        const containerHeight = this.container.clientHeight;
+        const startIndex = Math.floor(scrollTop / this.itemHeight);
+        const endIndex = Math.min(filteredItems.length - 1, Math.floor((scrollTop + containerHeight) / this.itemHeight));
+        
+        this.container.innerHTML = '';
+        
+        const topSpacerHeight = startIndex * this.itemHeight;
+        if (topSpacerHeight > 0) {
+          const topSpacer = document.createElement('div');
+          topSpacer.style.height = `${topSpacerHeight}px`;
+          this.container.appendChild(topSpacer);
+        }
+        
+        for (let i = startIndex; i <= endIndex; i++) {
+          if (i < filteredItems.length) {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'dropdown-item';
+            itemElement.textContent = filteredItems[i];
+            itemElement.dataset.value = filteredItems[i];
+            this.container.appendChild(itemElement);
+          }
+        }
+        
+        const itemsBelow = filteredItems.length - endIndex - 1;
+        if (itemsBelow > 0) {
+          const bottomSpacerHeight = itemsBelow * this.itemHeight;
+          const bottomSpacer = document.createElement('div');
+          bottomSpacer.style.height = `${bottomSpacerHeight}px`;
+          this.container.appendChild(bottomSpacer);
+        }
+        
+        if (filteredItems.length === 0) {
+          const emptyMessage = document.createElement('div');
+          emptyMessage.className = 'empty-state';
+          emptyMessage.textContent = this.filterText ? 'No matching perfumes found' : 'No perfumes available';
+          this.container.appendChild(emptyMessage);
+          this.container.style.height = 'auto';
+        }
+        
+        this.visibleItems = filteredItems.slice(startIndex, endIndex + 1);
+      }
+      
+      handleScroll() {
+        window.requestAnimationFrame(() => this.updateVisibleItems());
+      }
+    }
+    
+    // App Controller
+    class PerfumeSelectorApp {
+      constructor() {
+        this.searchInput = document.getElementById('perfume-search');
+        this.dropdownEl = document.getElementById('perfume-dropdown');
+        this.selectedPerfumesEl = document.getElementById('selected-perfumes');
+        this.genderSelect = document.getElementById('gender');
+        this.saveButton = document.getElementById('save-button');
+        this.notification = document.getElementById('notification');
+        this.notificationMessage = document.getElementById('notification-message');
+        
+        this.selectedPerfumes = [];
+        this.isLoading = false;
+        this.sheetsManager = new GoogleSheetsManager();
+        this.virtualList = new VirtualizedPerfumeList(this.dropdownEl);
+        
+        this.init();
+      }
+      
+      async init() {
+        createBackgroundAnimation();
+        this.searchInput.addEventListener('focus', () => {
+          if (!this.isLoading) this.dropdownEl.style.display = 'block';
+        });
+        this.searchInput.addEventListener('input', this.handleSearchInput.bind(this));
+        this.dropdownEl.addEventListener('click', this.handlePerfumeSelect.bind(this));
+        this.selectedPerfumesEl.addEventListener('click', this.handlePerfumeRemove.bind(this));
+        this.saveButton.addEventListener('click', this.handleSave.bind(this));
+        
+        document.addEventListener('click', (e) => {
+          if (!this.searchInput.contains(e.target) && !this.dropdownEl.contains(e.target)) {
+            this.dropdownEl.style.display = 'none';
+          }
+        });
+        
+        this.setLoadingState(true);
+        try {
+          // Use Google Sheets to load the perfume list
+          const perfumes = await this.sheetsManager.fetchPerfumes();
+          this.virtualList.setItems(perfumes);
+        } catch (error) {
+          this.showNotification(error.message, false);
+        } finally {
+          this.setLoadingState(false);
+        }
+      }
+      
+      setLoadingState(isLoading) {
+        this.isLoading = isLoading;
+        if (isLoading) {
+          this.dropdownEl.innerHTML = `
+            <div class="loading">
+              <div class="spinner"></div>
+            </div>
+          `;
+          this.dropdownEl.style.height = 'auto';
+        }
+      }
+      
+      handleSearchInput(e) {
+        const searchText = e.target.value.trim();
+        this.dropdownEl.scrollTop = 0;
+        this.virtualList.filterItems(searchText);
+        this.dropdownEl.style.display = 'block';
+        setTimeout(() => {
+          this.dropdownEl.style.display = 'none';
+          this.dropdownEl.offsetHeight;
+          this.dropdownEl.style.display = 'block';
+        }, 10);
+      }
+      
+      handlePerfumeSelect(e) {
+        const item = e.target.closest('.dropdown-item');
+        if (!item) return;
+        const perfumeName = item.dataset.value;
+        this.selectedPerfumes = this.virtualList.selectItem(perfumeName);
+        this.renderSelectedPerfumes();
+        this.searchInput.value = '';
+        this.virtualList.filterItems('');
+      }
+      
+      handlePerfumeRemove(e) {
+        const removeButton = e.target.closest('.remove-btn');
+        if (!removeButton) return;
+        const item = removeButton.closest('.selected-item');
+        const perfumeName = item.dataset.value;
+        this.selectedPerfumes = this.virtualList.unselectItem(perfumeName);
+        this.renderSelectedPerfumes();
+      }
+      
+      renderSelectedPerfumes() {
+        this.selectedPerfumesEl.innerHTML = '';
+        if (this.selectedPerfumes.length === 0) {
+          const emptyState = document.createElement('div');
+          emptyState.className = 'empty-state';
+          emptyState.textContent = 'No perfumes selected yet';
+          this.selectedPerfumesEl.appendChild(emptyState);
+          return;
+        }
+        this.selectedPerfumes.forEach(perfume => {
+          const itemEl = document.createElement('div');
+          itemEl.className = 'selected-item';
+          itemEl.dataset.value = perfume;
+          const nameEl = document.createElement('span');
+          nameEl.textContent = perfume;
+          const removeBtn = document.createElement('button');
+          removeBtn.className = 'remove-btn';
+          removeBtn.innerHTML = '×';
+          itemEl.appendChild(nameEl);
+          itemEl.appendChild(removeBtn);
+          this.selectedPerfumesEl.appendChild(itemEl);
+        });
+      }
+      
+      async handleSave() {
+        if (this.selectedPerfumes.length < 3) {
+          this.showNotification('Please select at least three perfumes', false);
+          return;
+        }
+        const gender = this.genderSelect.value;
+        if (!gender) {
+          this.showNotification('Please select a gender', false);
+          return;
+        }
+        
+        try {
+          this.saveButton.disabled = true;
+          this.saveButton.textContent = 'Saving...';
+          // Save the selection via Google Sheets
+          await this.sheetsManager.savePerfumeSelection(this.selectedPerfumes, gender);
+          // Set the hidden input so the form can be submitted to Flask
+          document.getElementById('selected-perfumes-hidden').value = this.selectedPerfumes.join(',');
+          // Submit the form
+          document.getElementById('selection-form').submit();
+        } catch (error) {
+          this.showNotification(error.message, false);
+        } finally {
+          this.saveButton.disabled = false;
+          this.saveButton.textContent = 'Next';
+        }
+      }
+      
+      showNotification(message, isSuccess) {
+        this.notificationMessage.textContent = message;
+        this.notification.className = isSuccess ? 'notification show' : 'notification show error';
+        setTimeout(() => {
+          this.notification.className = 'notification';
+        }, 3000);
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      new PerfumeSelectorApp();
+    });
+  </script>
+</body>
+</html>
