@@ -1,39 +1,815 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Your Selections</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Perfume Recommendations</title>
   <style>
-    body {
-      background-color: #121212;
-      color: #e0e0e0;
+    :root {
+      --primary-bg: #121212;
+      --secondary-bg: #1e1e1e;
+      --accent: #9370DB;
+      --text: #e0e0e0;
+      --secondary-text: #a0a0a0;
+      --border: #3a3a3a;
+      --card-hover: rgba(147,112,219,0.2);
+      --card-active: rgba(147,112,219,0.4);
+      /* Accord Colors (darker hues) */
+      --accord-woody: #5a3d24;
+      --accord-floral: #a44270;
+      --accord-fruity: #a84a00;
+      --accord-sweet: #a03a64;
+      --accord-spicy: #a03e2e;
+      --accord-fresh: #369a94;
+      --accord-citrus: #8e8a00;
+      --accord-aromatic: #257a3f;
+      --accord-musky: #571e1f;
+      --accord-amber: #8a6d1c;
+      --accord-powdery: #9a869a;
+      --accord-vanilla: #a18d6b;
+      --accord-white-floral: #848c84;
+      --accord-fresh-spicy: #76aa9f;
+      --accord-warm-spicy: #aa6146;
+      --accord-cinnamon: #8c4a2d;
+      --accord-tropical: #008055;
+      --accord-nutty: #8c6a4a;
+      --accord-leather: #5d3c2f;
+      --accord-aquatic: #007bb5;
+      --accord-green: #0d4d0d;
+      --accord-rose: #8c1a1a;
+      --accord-earthy: #4a5a42;
+      --accord-balsamic: #58606e;
+      --accord-smoky: #555555;
+      --accord-oud: #3e2f5f;
+      --accord-animalic: #6a4a3a;
+      --accord-tobacco: #5d194d;
+      --accord-default: #444444;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding: 20px;
     }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
+    
+    body {
+      background-color: var(--primary-bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
     }
-    h1 {
-      text-align: center;
+    
+    /* Navbar */
+    .navbar {
+      background-color: rgba(30,30,30,0.95);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      padding: 16px 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      z-index: 100;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
       background: linear-gradient(90deg, #b172c9, #7a6ff0);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
     }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+    }
+    .nav-link {
+      color: var(--text);
+      text-decoration: none;
+      margin-left: 24px;
+      padding: 4px 0;
+      transition: all 0.3s;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    .liked-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 10px;
+      background-color: var(--accent);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-left: 6px;
+      padding: 0 6px;
+    }
+    
+    /* Main content */
+    .main-content {
+      margin-top: 80px;
+      padding: 20px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .user-info {
+      margin-bottom: 40px;
+    }
+    .welcome-text h1 {
+      font-size: 2rem;
+      margin-bottom: 6px;
+    }
+    .welcome-text p {
+      color: var(--secondary-text);
+      font-size: 1rem;
+    }
+    
+    /* Recommendation rows */
+    .recommendation-row {
+      margin-bottom: 40px;
+    }
+    .row-header {
+      margin-bottom: 16px;
+    }
+    .row-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+    .subtitle {
+      color: var(--secondary-text);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+    
+    /* Horizontal scroll container */
+    .cards-container {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 16px;
+      overflow-x: auto;
+      padding: 10px 0;
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent) var(--primary-bg);
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Perfume card: fixed wide size */
+    .perfume-card {
+      background-color: var(--secondary-bg);
+      border-radius: 12px;
+      width: 350px;
+      padding: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+    .perfume-card:hover {
+      transform: translateY(-5px);
+      background-color: #2a2a2a;
+    }
+    .fade-out {
+      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    
+    /* Perfume information */
+    .perfume-info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .perfume-name {
+      font-size: 1.4rem;
+      font-weight: bold;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+    .perfume-brand {
+      font-size: 1rem;
+      color: #bbb;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+    
+    /* Accord tags styling */
+    .accords-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .accord-tag {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 14px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #fff;
+      background-color: #444;
+    }
+    
+    /* Liked indicator */
+    .liked-indicator {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: rgba(30,30,30,0.7);
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      opacity: 0;
+      transition: all 0.3s;
+    }
+    .perfume-card.liked .liked-indicator {
+      opacity: 1;
+    }
+    
+    /* Liked Perfumes Panel */
+    .liked-panel {
+      position: fixed;
+      top: 64px;
+      right: 0;
+      bottom: 0;
+      width: 320px;
+      background-color: var(--secondary-bg);
+      box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+      z-index: 99;
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in-out;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .liked-panel.show {
+      transform: translateX(0);
+    }
+    .liked-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .close-panel {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1.5rem;
+      transition: all 0.2s;
+    }
+    .close-panel:hover {
+      color: var(--accent);
+      transform: scale(1.1);
+    }
+    .liked-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .empty-liked {
+      text-align: center;
+      color: var(--secondary-text);
+      padding: 20px;
+    }
+    .liked-item {
+      position: relative;
+      background-color: rgba(147,112,219,0.1);
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .liked-item-info {
+      margin-left: 0;
+    }
+    .liked-item-name {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .liked-item-brand {
+      color: var(--secondary-text);
+      font-size: 0.9rem;
+    }
+    /* Remove button styling (restore previous style) */
+    .remove-liked {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--secondary-text);
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .remove-liked:hover {
+      color: #ff6b6b;
+    }
+    
+    /* Notification */
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background-color: var(--secondary-bg);
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      min-width: 280px;
+      max-width: 90%;
+      transition: transform 0.3s;
+      z-index: 1000;
+    }
+    .notification.show {
+      transform: translateX(-50%) translateY(0);
+    }
+    .notification-icon {
+      margin-right: 12px;
+      color: var(--accent);
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Your Selections</h1>
-    <p><strong>Gender:</strong> {{ gender }}</p>
-    <p><strong>Perfumes:</strong></p>
-    <ul>
-      {% for perfume in perfumes %}
-      <li>{{ perfume }}</li>
-      {% endfor %}
-    </ul>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="logo">Fragrantica</div>
+    <div class="nav-links">
+      <a href="#" class="nav-link">Home</a>
+      <a href="#" class="nav-link" id="liked-perfumes-btn">
+        Liked Perfumes <span class="liked-count" id="liked-count">0</span>
+      </a>
+    </div>
   </div>
+  
+  <!-- Main content -->
+  <div class="main-content">
+    <div class="user-info">
+      <div class="welcome-text">
+        <h1>Personalized Recommendations</h1>
+        <p>Based on your selections, we've curated the perfect fragrances for you.</p>
+      </div>
+    </div>
+    
+    <!-- Popular by counts  Recommendations -->
+    <div class="recommendation-row" id="popular-row">
+      <div class="row-header">
+        <div>
+          <div class="row-title">Popular fragrances(by count)</div>
+          <div class="subtitle">Fragrances that {gender} liked  </div>
+        </div>
+      </div>
+      <div class="cards-container" id="item-based-container">
+        {% if popular_count %}
+          {% for rec in popular_count %}
+            <div class="perfume-card"
+                 data-brand = "{{rec.brand}}"
+                 data-name="{{ rec.name }}"
+                 data-accord1="{{ rec.mainaccord1 }}"
+                 data-accord2="{{ rec.mainaccord2 }}"
+                 data-accord3="{{ rec.mainaccord3 }}"
+                 data-accord4="{{ rec.mainaccord4 }}"
+                 data-accord5="{{ rec.mainaccord5 }}"
+                 onclick="likePerfume(this);">
+              <div class="liked-indicator">
+                <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill: var(--accent);">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+                           2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81
+                           14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55
+                           11.54L12 21.35z" />
+                </svg>
+              </div>
+              <div class="perfume-info">
+                <div class="perfume-name">{{ rec.name }}</div>
+                <div class="perfume-brand">{{ rec.brand }}</div>
+                <div class="accords-tags">
+                  {% for i in range(1, 6) %}
+                    {% set accord = rec['mainaccord' ~ i] %}
+                    {% if accord %}
+                      <span class="accord-tag" style="background-color: var(--accord-{{ accord|replace(' ', '-')|lower }}, var(--accord-default));">
+                        {{ accord }}
+                      </span>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div>No recommendations at this time.</div>
+        {% endif %}
+      </div>
+
+
+       <!-- Popular by counts  Recommendations -->
+    <div class="recommendation-row" id="popular-row">
+      <div class="row-header">
+        <div>
+          <div class="row-title">Top rated fragrances</div>
+          <div class="subtitle">Fragrances that {gender} chose highly</div>
+        </div>
+      </div>
+      <div class="cards-container" id="item-based-container">
+        {% if top_rated %}
+          {% for rec in top_rated %}
+            <div class="perfume-card"
+                 data-brand = "{{rec.brand}}"
+                 data-name="{{ rec.name }}"
+                 data-accord1="{{ rec.mainaccord1 }}"
+                 data-accord2="{{ rec.mainaccord2 }}"
+                 data-accord3="{{ rec.mainaccord3 }}"
+                 data-accord4="{{ rec.mainaccord4 }}"
+                 data-accord5="{{ rec.mainaccord5 }}"
+                 onclick="likePerfume(this);">
+              <div class="liked-indicator">
+                <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill: var(--accent);">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+                           2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81
+                           14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55
+                           11.54L12 21.35z" />
+                </svg>
+              </div>
+              <div class="perfume-info">
+                <div class="perfume-name">{{ rec.name }}</div>
+                <div class="perfume-brand">{{ rec.brand }}</div>
+                <div class="accords-tags">
+                  {% for i in range(1, 6) %}
+                    {% set accord = rec['mainaccord' ~ i] %}
+                    {% if accord %}
+                      <span class="accord-tag" style="background-color: var(--accord-{{ accord|replace(' ', '-')|lower }}, var(--accord-default));">
+                        {{ accord }}
+                      </span>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div>No recommendations at this time.</div>
+        {% endif %}
+      </div>
+    
+    <!-- CONTENT-BASED Recommendation Section (Horizontal Scroll) -->
+    <div class="recommendation-row" id="item-based-row">
+      <div class="row-header">
+        <div>
+          <div class="row-title">Similar to your selections</div>
+          <div class="subtitle">Fragrances that share notes and qualities</div>
+        </div>
+      </div>
+      <div class="cards-container" id="item-based-container">
+        {% if content_based %}
+          {% for rec in content_based %}
+            <div class="perfume-card"
+                 data-brand = "{{rec.brand}}"
+                 data-name="{{ rec.name }}"
+                 data-accord1="{{ rec.mainaccord1 }}"
+                 data-accord2="{{ rec.mainaccord2 }}"
+                 data-accord3="{{ rec.mainaccord3 }}"
+                 data-accord4="{{ rec.mainaccord4 }}"
+                 data-accord5="{{ rec.mainaccord5 }}"
+                 onclick="likePerfume(this);">
+              <div class="liked-indicator">
+                <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill: var(--accent);">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+                           2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81
+                           14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55
+                           11.54L12 21.35z" />
+                </svg>
+              </div>
+              <div class="perfume-info">
+                <div class="perfume-name">{{ rec.name }}</div>
+                <div class="perfume-brand">{{ rec.brand }}</div>
+                <div class="accords-tags">
+                  {% for i in range(1, 6) %}
+                    {% set accord = rec['mainaccord' ~ i] %}
+                    {% if accord %}
+                      <span class="accord-tag" style="background-color: var(--accord-{{ accord|replace(' ', '-')|lower }}, var(--accord-default));">
+                        {{ accord }}
+                      </span>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div>No content-based recommendations at this time.</div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- COLLABORATIVE Recommendation Section (Horizontal Scroll) -->
+    <div class="recommendation-row" id="user-based-row">
+      <div class="row-header">
+        <div>
+          <div class="row-title">Others also liked</div>
+          <div class="subtitle">Recommended by users with similar taste</div>
+        </div>
+      </div>
+      <div class="cards-container" id="user-based-container">
+        {% if collab_based %}
+          {% for rec in collab_based %}
+            <div class="perfume-card"
+                 data-name="{{ rec.name }}"
+                 data-accord1="{{ rec.mainaccord1 }}"
+                 data-accord2="{{ rec.mainaccord2 }}"
+                 data-accord3="{{ rec.mainaccord3 }}"
+                 data-accord4="{{ rec.mainaccord4 }}"
+                 data-accord5="{{ rec.mainaccord5 }}"
+                 onclick="likePerfume(this);">
+              <div class="liked-indicator">
+                <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill: var(--accent);">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+                           2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81
+                           14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55
+                           11.54L12 21.35z" />
+                </svg>
+              </div>
+              <div class="perfume-info">
+                <div class="perfume-name">{{ rec.name }}</div>
+                <div class="perfume-brand">{{ rec.brand }}</div>
+                <div class="accords-tags">
+                  {% for i in range(1, 6) %}
+                    {% set accord = rec['mainaccord' ~ i] %}
+                    {% if accord %}
+                      <span class="accord-tag" style="background-color: var(--accord-{{ accord|replace(' ', '-')|lower }}, var(--accord-default));">
+                        {{ accord }}
+                      </span>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div>No collaborative recommendations at this time.</div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Additional Sections (SVD, New Releases, etc.) -->
+    <div class="recommendation-row" id="svd-row">
+      <div class="row-header">
+        <div>
+          <div class="row-title">Specially for you</div>
+          <div class="subtitle">Matrix factorization-based recommendations</div>
+        </div>
+      </div>
+      <div class="cards-container" id="svd-container">
+        <div class="spinner"></div>
+      </div>
+    </div>
+    <div class="recommendation-row" id="recent-row">
+      <div class="row-header">
+        <div>
+          <div class="row-title">New releases</div>
+          <div class="subtitle">Fresh to the market and worth trying</div>
+        </div>
+      </div>
+      <div class="cards-container" id="recent-container">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Liked Perfumes Panel -->
+  <div class="liked-panel" id="liked-panel">
+    <div class="liked-panel-header">
+      <h2>Liked Perfumes</h2>
+      <button class="close-panel" id="close-panel">&times;</button>
+    </div>
+    <div class="liked-list" id="liked-list">
+      <div class="empty-liked">You haven't liked any perfumes yet.</div>
+    </div>
+  </div>
+  
+  <!-- Notification -->
+  <div class="notification" id="notification">
+    <span class="notification-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    </span>
+    <span id="notification-message">Added to your liked perfumes!</span>
+  </div>
+  
+  <!-- Scripts -->
+  <script>
+    // Server-passed data (assumes these variables are set by Flask)
+    const contentBasedData = {{ content_based|tojson }};
+    const collabBasedData  = {{ collab_based|tojson }};
+    // Initially liked perfumes (array of perfume names)
+    const initialLikedPerfumes = {{ perfumes|tojson }};
+    
+    let likedPerfumes = [];
+    
+    // Update the liked panel with current liked perfumes
+    function updateLikedPanel() {
+      const likedListElem = document.getElementById('liked-list');
+      const likedCountElem = document.getElementById('liked-count');
+      likedListElem.innerHTML = '';
+      if (likedPerfumes.length === 0) {
+        likedListElem.innerHTML = '<div class="empty-liked">You haven\'t liked any perfumes yet.</div>';
+      } else {
+        likedPerfumes.forEach(name => {
+          const div = document.createElement('div');
+          div.className = 'liked-item';
+          div.innerHTML = `
+            <div class="liked-item-info">
+              <div class="liked-item-name">${name}</div>
+              <div class="liked-item-brand">Unknown</div>
+            </div>
+            <button class="remove-liked" data-perfume="${name}">&times;</button>
+          `;
+          likedListElem.appendChild(div);
+          div.querySelector('.remove-liked').addEventListener('click', e => {
+            e.stopPropagation();
+            const nm = e.target.getAttribute('data-perfume');
+            likedPerfumes = likedPerfumes.filter(item => item !== nm);
+            updateLikedPanel();
+          });
+        });
+      }
+      likedCountElem.textContent = likedPerfumes.length;
+    }
+    
+    // Show notification
+    function showNotification(message) {
+      const notification = document.getElementById('notification');
+      const notificationMessage = document.getElementById('notification-message');
+      notificationMessage.textContent = message;
+      notification.classList.add('show');
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
+    
+    // Function to create a new card's HTML (for new recommendations)
+    function createCardHtml(rec) {
+      // Using a template literal to match the card structure
+      return `
+        <div class="perfume-card" 
+             data-name="${rec.name}"
+             data-accord1="${rec.mainaccord1}"
+             data-accord2="${rec.mainaccord2}"
+             data-accord3="${rec.mainaccord3}"
+             data-accord4="${rec.mainaccord4}"
+             data-accord5="${rec.mainaccord5}"
+             onclick="likePerfume(this);">
+          <div class="liked-indicator">
+            <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill: var(--accent);">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+                       2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81
+                       14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55
+                       11.54L12 21.35z" />
+            </svg>
+          </div>
+          <div class="perfume-info">
+            <div class="perfume-name">${rec.name}</div>
+            <div class="perfume-brand">${rec.brand}</div>
+            <div class="accords-tags">
+              ${[1,2,3,4,5].map(i => {
+                let accord = rec['mainaccord' + i];
+                return accord ? `<span class="accord-tag" style="background-color: var(--accord-${accord.replace(/ /g, '-').toLowerCase()}, var(--accord-default));">${accord}</span>` : '';
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Fetch and update recommendations based on a liked perfume
+    function updateRecommendationsOnLike(likedName) {
+      fetch(`/recommendation-update?liked=${encodeURIComponent(likedName)}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log("Fetched new recommendation data:", data);
+          // data now is an object with an alert and a recommendations key
+          showNotification(data.alert);
+          const newRecs = data.recommendations; // This is the array of new recommendations
+          const container = document.getElementById('item-based-container');
+          newRecs.forEach(rec => {
+            // Assuming you have a function that creates the HTML for a card, for example:
+            const cardHtml = createCardHtml(rec);
+            container.insertAdjacentHTML('beforeend', cardHtml);
+          });
+        })
+        .catch(err => {
+          console.error("Error fetching new recommendations:", err);
+        });
+    }
+    
+    function createCardHtml(rec) {
+      return `
+        <div class="perfume-card" 
+             data-name="${rec.name}"
+             data-accord1="${rec.mainaccord1}"
+             data-accord2="${rec.mainaccord2}"
+             data-accord3="${rec.mainaccord3}"
+             data-accord4="${rec.mainaccord4}"
+             data-accord5="${rec.mainaccord5}"
+             onclick="likePerfume(this);">
+          <div class="liked-indicator">
+            <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill: var(--accent);">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+                       2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81
+                       14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55
+                       11.54L12 21.35z" />
+            </svg>
+          </div>
+          <div class="perfume-info">
+            <div class="perfume-name">${rec.name}</div>
+            <div class="perfume-brand">${rec.brand}</div>
+            <div class="accords-tags">
+              ${[1,2,3,4,5].map(i => {
+                let accord = rec['mainaccord' + i];
+                return accord ? `<span class="accord-tag" style="background-color: var(--accord-${accord.replace(/ /g, '-').toLowerCase()}, var(--accord-default));">${accord}</span>` : '';
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+        
+    // Handle liking a perfume: add to liked list, fade out card, and update recommendations
+    function likePerfume(cardElem) {
+      const perfumeName = cardElem.getAttribute('data-brand') + " " + cardElem.getAttribute('data-name');
+      if (!likedPerfumes.includes(perfumeName)) {
+        likedPerfumes.push(perfumeName);
+        updateLikedPanel();
+        showNotification(`Added "${perfumeName}" to your liked perfumes!`);
+        // Update recommendations based on this liked perfume.
+        updateRecommendationsOnLike(perfumeName);
+      }
+      cardElem.classList.add('fade-out');
+      cardElem.onclick = null;
+      setTimeout(() => {
+        cardElem.style.display = 'none';
+      }, 500);
+    }
+    
+    // Toggle liked panel visibility
+    function toggleLikedPanel(show) {
+      const likedPanel = document.getElementById('liked-panel');
+      if (show) {
+        likedPanel.classList.add('show');
+      } else {
+        likedPanel.classList.remove('show');
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize liked perfumes from the server data
+      initialLikedPerfumes.forEach(name => {
+        if (name && !likedPerfumes.includes(name)) {
+          likedPerfumes.push(name);
+        }
+      });
+      updateLikedPanel();
+      
+      const likedBtn = document.getElementById('liked-perfumes-btn');
+      const closeBtn = document.getElementById('close-panel');
+      likedBtn.addEventListener('click', () => toggleLikedPanel(true));
+      closeBtn.addEventListener('click', () => toggleLikedPanel(false));
+      
+      document.addEventListener('click', (e) => {
+        const likedPanel = document.getElementById('liked-panel');
+        if (!likedPanel.contains(e.target) && !document.getElementById('liked-perfumes-btn').contains(e.target)) {
+          toggleLikedPanel(false);
+        }
+      });
+    });
+  </script>
 </body>
 </html>
